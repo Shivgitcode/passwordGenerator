@@ -8,13 +8,13 @@ const lowercaseCheck = document.querySelector("#lowercase");
 const numbersCheck = document.querySelector("#numbers");
 const symbolsCheck = document.querySelector("#symbols");
 const indicator = document.querySelector("[data-indicator]");
-const generateBtn = document.querySelector(".generateBtn");
+const generateBtn = document.querySelector(".generateButton");
 const allCheckBox = document.querySelectorAll("input[type=checkbox]");
 
 // lengthDisplay.textContent = inputSlider.value;
 let password = "";
 let passwordLength = 10;
-let checkCount = 1;
+let checkCount = 0;
 let symbol = "!@#$%^&*()_-+={[}];:'|><?/";
 handleSlider();
 
@@ -72,6 +72,19 @@ function calcStrength() {
   }
 }
 
+function shufflePassword(array) {
+  // fisher Yates method
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  let str = "";
+  array.forEach((el) => (str += el));
+  return str;
+}
+
 async function copyContent() {
   try {
     await navigator.clipboard.writeText(passwordDisplay.value);
@@ -115,21 +128,50 @@ allCheckBox.forEach((checkbox) => {
 });
 
 generateBtn.addEventListener("click", () => {
-  if (checkCount <= 0) return;
+  if (checkCount == 0) return;
   if (passwordLength < checkCount) {
-    password.length = checkCount;
+    passwordLength = checkCount;
     handleSlider();
   }
 
   password = "";
 
+  // if (uppercaseCheck.checked) {
+  //   password += generateUpperCase();
+  // }
+  // if (lowercaseCheck.checked) {
+  //   password += generateLowerCase();
+  // }
+  // if (numbersCheck.checked) {
+  //   password += generateRandomNumber();
+  // }
+  let funcArr = [];
   if (uppercaseCheck.checked) {
-    password += generateUpperCase();
+    funcArr.push(generateUpperCase);
   }
   if (lowercaseCheck.checked) {
-    password += generateLowerCase();
+    funcArr.push(generateLowerCase);
   }
   if (numbersCheck.checked) {
-    password += generateRandomNumber();
+    funcArr.push(generateRandomNumber);
   }
+  if (symbolsCheck.checked) {
+    funcArr.push(generateSymbol);
+  }
+
+  for (let i = 0; i < funcArr.length; i++) {
+    password += funcArr[i]();
+  }
+
+  for (let i = 0; i < passwordLength - funcArr.length; i++) {
+    let randIndex = getRandomInteger(0, funcArr.length);
+
+    password += funcArr[randIndex]();
+  }
+
+  password = shufflePassword(Array.from(password));
+
+  passwordDisplay.value = password;
+
+  calcStrength();
 });
